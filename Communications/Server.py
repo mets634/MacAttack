@@ -43,6 +43,7 @@ def main():
                             print "KEY = " + data.split("=", 1)[1]
                             server_socket.close()
                             exit(0)
+        print "pass"
 
 
 if __name__ == '__main__':
