@@ -1,31 +1,42 @@
 import socket
 import time
+import re
 
 
 def main():
-    client_socket = socket.socket()
 
-    client_socket.connect(('127.0.0.1', 3626))
-    token = client_socket.recv(1024).split("=", 1)[1]
-    username = client_socket.recv(1024).split("=", 1)[1]
+    server_message = send_message("new")
+    token = re.match(".+\|token=(.+)", server_message).group(1)
+    username = re.match("username=([^|]+)", server_message).group(1)
     print "token = " + token
     print "username = " + username
 
     while True:
-        client_socket.sendall("next")
-        block_number = client_socket.recv(1024).split("=", 1)[1]
+        server_message = send_message("next")
+        print server_message
+        run_script(token, username, server_message)
+        continue
         print "block_number = " + block_number
 
         key = run_script(token, username, block_number)
 
         # if key is not empty then key found
         if key:
-            client_socket.sendall("done|key=" + key)
+            client_socket.sendall("key=" + key)
             client_socket.close()
             exit(0)
 
+
+def send_message(message):
+    client_socket = socket.socket()
+    client_socket.connect(('127.0.0.1', 3626))
+    client_socket.sendall(message)
+    server_message = client_socket.recv(1024)
+    client_socket.close()
+    return server_message
+
 def run_script(token, username, block_number):
-    time.sleep(5)
+    time.sleep(2)
     key = 0
     return key
 
