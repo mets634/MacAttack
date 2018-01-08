@@ -86,8 +86,8 @@ class Master(object):
 
 
 def main():
-    token = sys.argv[0]
-    username = sys.argv[1]
+    token = sys.argv[1]
+    username = sys.argv[2]
 
     # create master
     master = Master(token, username)

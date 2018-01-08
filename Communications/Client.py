@@ -27,7 +27,7 @@ def main():
 
         # if key is not empty then key found
         if key != 0:
-            send_message("key=" + key)
+            send_message("key=" + str(key))
             exit(0)
 
 
@@ -60,6 +60,7 @@ def run_script(token, username, block_number):
     :return: key; if key not found then return 0
     """
     time.sleep(2)
+    print "blcok number = " + str(int(block_number, 16))
     # run program with given params
     # call(["./script", "token", "username", "block_number"])
     key = 0
