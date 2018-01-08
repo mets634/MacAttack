@@ -1,6 +1,7 @@
 import socket
 import time
 import re
+from subprocess import call
 
 
 def main():
@@ -37,6 +38,7 @@ def send_message(message):
 
 def run_script(token, username, block_number):
     time.sleep(2)
+    # call(["./script", "token", "username", "block_number"])
     key = 0
     return key
 
