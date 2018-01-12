@@ -1,8 +1,10 @@
 // MD5 function taken from: https://github.com/awreece/pdfcrack-opencl/blob/master/md5.cl
 
-//#include "common.h"
 
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
+
+#define MD5_SIZE 16
+#define KEY_SIZE 16
 
 /* The basic MD5 functions */
 #define F(x, y, z)			((z) ^ ((x) & ((y) ^ (z))))
@@ -18,8 +20,7 @@
 
 #define GET(i) (key[(i)])
 
-// void md5_round(uint* internal_state, const uint* key);
-static void md5_round(uint* internal_state, const uint* key) {
+static void md5_round(__global uint* internal_state, const uint* key) {
   uint a, b, c, d;
   a = internal_state[0];
   b = internal_state[1];
@@ -104,7 +105,7 @@ static void md5_round(uint* internal_state, const uint* key) {
   internal_state[3] = d + internal_state[3];
 }
 
-void md5(const char* restrict msg, uint length_bytes, uint* restrict out) {
+void md5(char* msg, __global uint* out) {
   uint i;
   uint bytes_left;
   char key[64];
@@ -114,7 +115,7 @@ void md5(const char* restrict msg, uint length_bytes, uint* restrict out) {
   out[2] = 0x98badcfe;
   out[3] = 0x10325476;
 
-  for (bytes_left = length_bytes;  bytes_left >= 64;
+  for (bytes_left = KEY_SIZE;  bytes_left >= 64;
        bytes_left -= 64, msg = &msg[64]) {
     md5_round(out, (const uint*) msg);
   }
@@ -129,29 +130,55 @@ void md5(const char* restrict msg, uint length_bytes, uint* restrict out) {
   } else {
     // If we have to pad enough to roll past this round.
     for (i = bytes_left; i < 64; key[i++] = 0);
-    md5_round(out, (uint*) key);
+    md5_round(out, (const uint*)key);
     for (i = 0; i < 56; key[i++] = 0);
   }
 
   ulong* len_ptr = (ulong*) &key[56];
-  *len_ptr = length_bytes * 8;
-  md5_round(out, (uint*) key);
+  *len_ptr = KEY_SIZE * 8;
+  md5_round(out, (const uint*) key);
 }
 
-__kernel void smash() {
-	/*TODO*/
+// TODO: if KEY_SIZE or block # > 2 ** 32, will result in infinite loop
+
+inline void increment(char* current) { 
+	for (uint a = 0; a < KEY_SIZE; ++a) { 
+		uchar *curr = &current[KEY_SIZE - a - 1]; // hold onto address for performance boost
+
+		++(*curr); // increment
+
+		// stop while loop if no
+		// overflow has occured
+		a += (*curr) * KEY_SIZE; // not using 'if' for performance reasons
+	}
 }
 
-/*
-const char *KernelSource = "\n" \
-"__kernel void square(                                                       \n" \
-"   __global float* input,                                              \n" \
-"   __global float* output,                                             \n" \
-"   const unsigned int count)                                           \n" \
-"{                                                                      \n" \
-"   int i = get_global_id(0);                                           \n" \
-"   if(i < count)                                                       \n" \
-"       output[i] = input[i] * input[i];                                \n" \
-"}                                                                      \n" \
-"\n";
-*/
+void generate_key(char* output, const uint block, const uint id) { 
+	// key = block * KEY_SIZE + id
+
+	// zero out output before incrementing
+	for (uint k = 0; k < KEY_SIZE; ++k)
+		output[k] = 0;
+
+	// cannot use regular multiplication, 
+	// number can be too big
+
+	// block * KEYSIZE
+	for (uint a = 0; a < block; ++a)
+		for (uint b = 0; b < KEY_SIZE; ++b)
+			increment(output);
+
+	// + id
+	for (uint k = 0; k < id; ++k)
+			increment(output);
+}
+
+__kernel void smash(__global char* output, uint block) {
+	char key[KEY_SIZE];
+	const uint id = get_global_id(0); // get my unique id
+
+	generate_key(key, block, id); // generate current key to hash
+	__global uint* out = (__global uint*)&output[id * MD5_SIZE]; // location for my result
+
+	md5(key, out); // compute MD5 hash
+}

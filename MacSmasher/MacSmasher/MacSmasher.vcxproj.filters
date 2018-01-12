@@ -21,6 +21,9 @@
     <ClCompile Include="smasher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CL.h">
@@ -29,7 +32,10 @@
     <ClInclude Include="smasher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common.h">
+    <ClInclude Include="types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
