@@ -1,5 +1,6 @@
 import socket
-import sys
+import argparse
+
 
 
 class Master(object):
@@ -85,9 +86,21 @@ class Master(object):
         print "\tsocket closed"
 
 
+def parser_creator():
+    """
+        setup argparse for receiving command line variables
+    :return: command line variables in parser type
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("token", type=str, help="the token to break")
+    parser.add_argument("username", type=str, help="the content of the token")
+    return parser.parse_args()
+
+
 def main():
-    token = sys.argv[1]
-    username = sys.argv[2]
+    parser = parser_creator()
+    token = parser.token
+    username = parser.username
 
     # create master
     master = Master(token, username)

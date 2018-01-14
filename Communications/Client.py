@@ -59,11 +59,11 @@ def run_script(token, username, block_number):
     :param block_number: block number to process
     :return: key; if key not found then return 0
     """
-    time.sleep(2)
-    print "blcok number = " + str(int(block_number, 16))
-    # run program with given params
-    # call(["./script", "token", "username", "block_number"])
     key = 0
+    block = str(int(block_number, 16))
+    print "blcok number = " + block
+    # run program with given params
+    key = call(["./script", token, username, block])
     return key
 
 
