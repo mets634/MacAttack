@@ -6,40 +6,33 @@
 
 using namespace std;
 
-bool smash_block();
+
+bool smash_block(const uint block_num);
 
 static smasher s;
 static char cmpto[MD5_SIZE];
 
-int main() {
+int main(int argc, char* argv[]) {
+	if (argc < 3) // no block # supplied
+		return -5;
 	if (!s.get_ready()) {
 		_log("Critical -- Failed to initiate smasher");
 		return SMASHER_INIT_ERROR;
 	}
 
-	_log("Awaiting cmpto value...");
-	cin.read(cmpto, MD5_SIZE); // read cmpto hash
+	_log("Getting cmpto value...");
+	memcpy(cmpto, argv[1], MD5_SIZE); // copy input value to cmpto
 
-	while (smash_block()); // keep smashing blocks
+	smash_block(atoi(argv[2])); // smash
 
 	_log("\nDone...");
 	return EXIT_SUCCESS;
 }
 
-bool smash_block() {
-	// read block number
-	int block_num;
-	cin >> block_num;
-
-	// negative input means exit
-	if (block_num < 0)
-		return false;
-
+bool smash_block(const uint block_num) {
 	// run smasher on block
 	_log("Running smasher...");
 	int res = s.smash(block_num, cmpto);
-
-	// parse results
 
 #ifdef LOG
 	if (res == -1)
