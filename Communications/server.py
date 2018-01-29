@@ -11,14 +11,12 @@ class Master(object):
             username - the username in the token
     """
 
-    def __init__(self, token, username):
+    def __init__(self, token):
         """
             initialize all variables
         :param token: the token to break
-        :param username: the username inside the token
         """
         self._token = token
-        self._username = username
         self._block_counter = 0
 
         # initialize socket
@@ -55,7 +53,7 @@ class Master(object):
         # handle client by message
         if data == "new":
             # if 'new', send username and token
-            client_socket.sendall("username=" + self._username + "|token=" + self._token)
+            client_socket.sendall("token=" + self._token)
         elif data == "next":
             # if 'next', send new block number
             client_socket.sendall(hex(self._block_counter))
@@ -87,15 +85,11 @@ class Master(object):
 
 def main():
     token = sys.argv[1]
-    username = sys.argv[2]
 
     # create master
-    master = Master(token, username)
+    master = Master(token)
 
-    # init key
-    key = 0
-
-    while key == 0:
+    while key is None:
         # run master main loop
         try:
             key = master.main_loop()

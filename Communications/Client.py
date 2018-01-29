@@ -7,12 +7,10 @@ from subprocess import call
 def main():
     # send 'new' message to server and receive token and username
     server_message = send_message("new")
-    # extract token and username from server message
-    token = re.match(".+\|token=(.+)", server_message).group(1)
-    username = re.match("username=([^|]+)", server_message).group(1)
+    # extract token from server message
+    token = re.match("token=(.+)", server_message).group(1)
 
     print "token = " + token
-    print "username = " + username
 
     while True:
         # send 'next' message and receive new block number
@@ -23,7 +21,7 @@ def main():
         print "block_number = " + block_number
 
         # run script and get key
-        key = run_script(token, username, block_number)
+        key = run_script(token, block_number)
 
         # if key is not empty then key found
         if key != 0:
@@ -51,20 +49,19 @@ def send_message(message):
     return server_message
 
 
-def run_script(token, username, block_number):
+def run_script(token, block_number):
     """
         run the c program to find the key for the hash
     :param token: token to break
-    :param username: username inside token
     :param block_number: block number to process
     :return: key; if key not found then return 0
     """
     time.sleep(2)
-    print "blcok number = " + str(int(block_number, 16))
+    print "block number = " + str(int(block_number, 16))
+
+    # TODO: Change path to differ for each OS
     # run program with given params
-    # call(["./script", "token", "username", "block_number"])
-    key = 0
-    return key
+    return subprocess.check_output(['MacSmasher.exe', token, str(block_number)])
 
 
 if __name__ == '__main__':
